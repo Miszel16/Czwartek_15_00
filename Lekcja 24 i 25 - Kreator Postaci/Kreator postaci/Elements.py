@@ -32,5 +32,16 @@ class Head(Element):
         super().__init__("head")
 
 # Body
+class Body(Element):
+    def __init__(self):
+        super().__init__("body")
+
 # Eyes
+class Eye(Element):
+    def __init__(self):
+        super().__init__("eye")
+
 # Weapon
+class Weapon(Element):
+    def __init__(self):
+        super().__init__("weapon")
