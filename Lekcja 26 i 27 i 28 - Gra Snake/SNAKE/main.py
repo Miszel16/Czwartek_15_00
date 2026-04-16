@@ -5,6 +5,11 @@
 # CZĘŚĆ II
 # - głowa węża
 # - sterowanie
+# ------------------------------------
+# CZĘŚĆ III
+# - zjadanie jabłka i rośnięcie węża
+# - kolizja ze ścianami
+# - wyświetlanie wyniku gry (opcjonalnie)
 
 
 import pygame
@@ -69,10 +74,20 @@ while status_gry:
             waz.aktualizuj()
 
         pass
-
-    ekran.blit(tlo, (0,0))
+    #--------------------------------------------------------------------------
+    kolizja_z_jablkiem = pygame.sprite.spritecollideany(waz, jablka_lista)
     
-    ekran.blit(waz.obraz, waz.rect) #!!!
+    if kolizja_z_jablkiem != None:
+        kolizja_z_jablkiem.kill()
+        waz.jedz_jablko()
+        jablko = Jablko()
+        jablka_lista.add(jablko)
+    #--------------------------------------------------------------------------
+    
+    ekran.blit(tlo, (0,0))
+    ekran.blit(waz.obraz, waz.rect) 
+
+    waz.rysuj_segmenty(ekran) # ---------------------
 
     for jablko in jablka_lista:
         ekran.blit(jablko.obraz, jablko.rect)
