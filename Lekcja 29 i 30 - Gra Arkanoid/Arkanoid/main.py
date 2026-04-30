@@ -1,6 +1,7 @@
 import pygame
 #      plik             klasa
-from platforma import Platforma #!!!!!!!!!!
+from platforma import Platforma
+from kulka import Kulka #!!!!
 pygame.init()
 
 SZEROKOSC_EKRANU = 1024
@@ -11,7 +12,9 @@ zegar = pygame.time.Clock()
 obraz_tla = pygame.image.load('images/background.png')
 
 
-platforma = Platforma() #!!!!!!
+platforma = Platforma()
+kulka = Kulka() #!!!
+
 
 status_gry = True
 while status_gry:
@@ -30,8 +33,14 @@ while status_gry:
     if klawisze[pygame.K_d]:# w prawo (x rośnie)
         platforma.ruszaj_platforma(+1)
 
+    kulka.aktualizuj(platforma) #!!
+
     ekran.blit(obraz_tla, (0,0))
     ekran.blit(platforma.obraz, platforma.rect)
+
+    platforma.aktualizuj() #!!
+
+    ekran.blit(kulka.obraz, kulka.rect) #!!
 
     pygame.display.flip()
     zegar.tick(30)
