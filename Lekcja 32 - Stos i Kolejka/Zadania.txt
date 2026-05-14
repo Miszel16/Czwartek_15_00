@@ -1,0 +1,51 @@
+1 # 1. Utwórz symulator przeglądarki gdzie historia przeglądania 
+2 # będzie zapisywana w formie stosu. Użytkownik może wchodzić 
+3 # na różne strony w programie i cofać się w historii przeglądania.
+4
+5 # - historia stron
+6 # - dodanie strony do historii (przejście na jakąś stronę)
+7 # - COFNIJ (przejście do strony poprzedniej)
+
+
+
+
+
+
+55 # 2. Utwórz symulator kolejki do kasy kina gdzie elementami kolejki
+56 # są klienci razem z ich zamówieniem. Do utworzenia symulatora kolejki
+57 # użyj naszej struktury Kolejki, którą stworzyliśmy wcześniej.
+58
+59 # - czy są jeszcze jacyś klienci? (czy pusta)
+60 # - dodaj klienta do kolejki
+61 # - usuń klienta z kolejki
+62 # - kto następny? (zwraca zamówienie klienta, który jest pierwszy w kolejce)
+
+
+
+
+
+
+108 # ----------------------------DODATKOWE--------------------------------
+109 # Napisz funkcję, która sprawdzi, czy dany ciąg znaków jest palindromem,
+110 # korzystając z naszej implementacji stosu.
+111
+112 # palindrom - np. kajak, ala
+113 # od przodu i od tyłu ten sam wyraz
+
+
+
+
+
+
+
+
+
+133 # PODSUMOWANIE
+134 # ● Nauczyliśmy się implementować stos oraz kolejkę w Pythonie przy użyciu listy lub klas.
+135 # ● Stos jest strukturą LIFO, a kolejka FIFO.
+136 # ● Implementowaliśmy metody push, pop i peek.
+137
+138 # Pytania powtórzeniowe:
+139 # ● Jakie są cechy stosu?
+140 # ● Jakie są cechy kolejki?
+141 # ● Jakie metody stosu/kolejki poznaliśmy i do czego służą?
