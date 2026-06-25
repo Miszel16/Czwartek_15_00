@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Łowcy Błędów Pythona</title>
+  <style>
+    :root {
+      --bg: #101827;
+      --card: #1f2a44;
+      --card2: #263656;
+      --accent: #7dd3fc;
+      --good: #22c55e;
+      --bad: #ef4444;
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --selected: #facc15;
+      --purple: #c084fc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #1e3a8a 0, var(--bg) 45%, #020617 100%);
+      color: var(--text);
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1220px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 4vw, 46px);
+    }
+
+    .subtitle {
+      margin: 0 auto;
+      color: var(--muted);
+      font-size: 18px;
+      max-width: 900px;
+      line-height: 1.4;
+    }
+
+    .scoreboard {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin: 20px 0;
+    }
+
+    .score-box {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 12px 18px;
+      border-radius: 16px;
+      font-size: 19px;
+      font-weight: bold;
+      min-width: 160px;
+      text-align: center;
+    }
+
+    .level-panel, .rules, .final-panel {
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 20px;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      color: var(--muted);
+      line-height: 1.45;
+      text-align: center;
+    }
+
+    .level-title {
+      color: var(--accent);
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    .level-description {
+      font-size: 17px;
+    }
+
+    .rules b {
+      color: var(--text);
+    }
+
+    .game {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+
+    .column {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 18px;
+    }
+
+    .column h2 {
+      margin: 0 0 14px;
+      text-align: center;
+      color: var(--accent);
+      font-size: 24px;
+    }
+
+    .cards {
+      display: grid;
+      gap: 12px;
+    }
+
+    .card {
+      border: 2px solid transparent;
+      background: linear-gradient(135deg, var(--card), var(--card2));
+      color: var(--text);
+      border-radius: 16px;
+      padding: 15px 16px;
+      min-height: 72px;
+      cursor: pointer;
+      font-size: 17px;
+      line-height: 1.35;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.22);
+      transition: transform .12s ease, border-color .12s ease, opacity .2s ease;
+      user-select: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(125, 211, 252, 0.7);
+    }
+
+    .card.selected {
+      border-color: var(--selected);
+      box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.22);
+    }
+
+    .card.correct {
+      background: linear-gradient(135deg, #166534, #15803d);
+      border-color: var(--good);
+      pointer-events: none;
+      opacity: 0.84;
+    }
+
+    .card.wrong {
+      animation: shake .25s ease;
+      border-color: var(--bad);
+    }
+
+    .code {
+      font-family: Consolas, "Courier New", monospace;
+      white-space: pre-wrap;
+    }
+
+    .hint-text {
+      display: block;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.35;
+      opacity: 0.95;
+    }
+
+    .hint-label {
+      color: var(--selected);
+      font-weight: bold;
+    }
+
+    .message {
+      text-align: center;
+      font-size: 21px;
+      min-height: 38px;
+      margin: 18px 0 8px;
+      font-weight: bold;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: var(--accent);
+      color: #082f49;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 999px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      filter: brightness(1.07);
+    }
+
+    button.secondary {
+      background: var(--purple);
+      color: #2e1065;
+    }
+
+    button.danger {
+      background: #fca5a5;
+      color: #450a0a;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .final-panel {
+      padding: 28px 22px;
+      margin-top: 18px;
+    }
+
+    .final-title {
+      font-size: clamp(28px, 4vw, 44px);
+      color: var(--selected);
+      margin: 0 0 12px;
+    }
+
+    .final-score {
+      font-size: 24px;
+      color: var(--text);
+      margin: 10px 0;
+      font-weight: bold;
+    }
+
+    .final-rank {
+      font-size: 30px;
+      color: var(--accent);
+      font-weight: bold;
+      margin: 10px 0 14px;
+    }
+
+    .final-text {
+      font-size: 18px;
+      max-width: 820px;
+      margin: 0 auto;
+      color: var(--muted);
+    }
+
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      50% { transform: translateX(6px); }
+      75% { transform: translateX(-4px); }
+      100% { transform: translateX(0); }
+    }
+
+    @media (max-width: 800px) {
+      body {
+        padding: 12px;
+      }
+
+      .game {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🐍 Łowcy Błędów Pythona</h1>
+      <p class="subtitle">Połącz fragment kodu z błędem. Przejdź 3 poziomy i sprawdź, jaki tytuł debuggera zdobędziesz!</p>
+    </header>
+
+    <div class="scoreboard">
+      <div class="score-box">Punkty: <span id="score">0</span></div>
+      <div class="score-box">Poziom: <span id="levelNumber">1</span>/3</div>
+      <div class="score-box">Trafione: <span id="matched">0</span>/<span id="total">0</span></div>
+      <div class="score-box">Stawka: <span id="levelPoints">+1 / -1</span></div>
+    </div>
+
+    <section class="level-panel" id="levelPanel">
+      <div class="level-title" id="levelTitle"></div>
+      <div class="level-description" id="levelDescription"></div>
+    </section>
+
+    <div class="rules" id="rules">
+      Kliknij najpierw kafelek z kodem, potem kafelek z nazwą błędu.
+      Podpowiedź pod kodem jest widoczna od razu. Poprawna para daje punkty poziomu, błędna para odejmuje tyle samo punktów.
+    </div>
+
+    <main class="game" id="game">
+      <section class="column">
+        <h2>Fragmenty kodu</h2>
+        <div class="cards" id="leftCards"></div>
+      </section>
+
+      <section class="column">
+        <h2>Rodzaje błędów</h2>
+        <div class="cards" id="rightCards"></div>
+      </section>
+    </main>
+
+    <div class="message" id="message"></div>
+
+    <div class="buttons" id="buttons">
+      <button class="secondary hidden" id="nextLevelButton" onclick="nextLevel()">Następny poziom</button>
+      <button class="danger" onclick="restartGame()">Zagraj od nowa</button>
+    </div>
+
+    <section class="final-panel hidden" id="finalPanel">
+      <h2 class="final-title">🎉 Gratulacje!</h2>
+      <div class="final-score" id="finalScore"></div>
+      <div class="final-rank" id="finalRank"></div>
+      <p class="final-text" id="finalText"></p>
+      <div class="buttons">
+        <button onclick="restartGame()">Zagraj jeszcze raz</button>
+      </div>
+    </section>
+  </div>
+
+<script>
+const levels = [
+  {
+    number: 1,
+    points: 1,
+    title: "Poziom 1: Najczęstsze błędy",
+    description: "To są błędy, które początkujący programiści widzą bardzo często. Za każdą dobrą parę dostajesz +1 punkt, za złą -1 punkt.",
+    completeMessage: "Świetnie! Poziom 1 ukończony. Znasz już błędy, które najczęściej wyskakują przy pierwszych programach.",
+    pairs: [
+      {
+        id: "zero",
+        code: "print(10 / 0)",
+        error: "ZeroDivisionError",
+        hint: "Ten błąd pojawia się przy dzieleniu przez zero."
+      },
+      {
+        id: "name",
+        code: "print(wynik)",
+        error: "NameError",
+        hint: "Python nie zna tej nazwy, bo zmienna nie została wcześniej utworzona."
+      },
+      {
+        id: "type",
+        code: '"abc" + 5',
+        error: "TypeError",
+        hint: "Operacja między tymi typami danych nie ma sensu."
+      },
+      {
+        id: "value",
+        code: 'int("kot")',
+        error: "ValueError",
+        hint: "Typ jest dobry, ale wartość nie nadaje się do zamiany na liczbę."
+      },
+      {
+        id: "index",
+        code: "lista = [1, 2, 3]\nprint(lista[5])",
+        error: "IndexError",
+        hint: "Lista nie ma elementu o takim indeksie."
+      },
+      {
+        id: "key",
+        code: 'dane = {"hp": 100}\nprint(dane["mana"])',
+        error: "KeyError",
+        hint: "W słowniku nie ma takiego klucza."
+      }
+    ]
+  },
+  {
+    number: 2,
+    points: 2,
+    title: "Poziom 2: Błędy programisty-detektora",
+    description: "Tu pojawiają się błędy trochę mniej oczywiste, ale nadal bardzo przydatne w prawdziwym kodzie. Dobra para: +2 punkty, zła para: -2 punkty.",
+    completeMessage: "Brawo! Poziom 2 za Tobą. Umiesz już rozpoznawać błędy nie tylko po nazwie, ale też po sytuacji w kodzie.",
+    pairs: [
+      {
+        id: "attribute",
+        code: '"tekst".append("!")',
+        error: "AttributeError",
+        hint: "Ten obiekt nie ma takiej metody."
+      },
+      {
+        id: "file",
+        code: 'open("brak.txt")',
+        error: "FileNotFoundError",
+        hint: "Program próbuje otworzyć plik, którego nie ma."
+      },
+      {
+        id: "assert",
+        code: "x = 5\nassert x > 10",
+        error: "AssertionError",
+        hint: "Warunek po assert jest fałszywy."
+      },
+      {
+        id: "import",
+        code: "import nieistniejacy_modul",
+        error: "ImportError",
+        hint: "Import się nie udał, bo moduł nie istnieje albo nie da się go załadować."
+      },
+      {
+        id: "syntax",
+        code: "if x 5:\n    print(x)",
+        error: "SyntaxError",
+        hint: "Kod jest zapisany niepoprawnie i Python nie rozumie składni."
+      },
+      {
+        id: "indent",
+        code: "if True:\nprint('hej')",
+        error: "IndentationError",
+        hint: "Po instrukcji if powinien być poprawnie wcięty blok kodu."
+      }
+    ]
+  },
+  {
+    number: 3,
+    points: 3,
+    title: "Poziom 3: Rzadkie bossy wyjątków",
+    description: "To rzadsze błędy, które pojawiają się w bardziej specjalnych sytuacjach. Dobra para: +3 punkty, zła para: -3 punkty.",
+    completeMessage: "Mega robota! Poziom 3 ukończony. Dotarłeś/dotarłaś do końca misji debugowania.",
+    pairs: [
+      {
+        id: "overflow",
+        code: "import math\nmath.exp(1000)",
+        error: "OverflowError",
+        hint: "Wynik operacji liczbowej jest za duży."
+      },
+      {
+        id: "memory",
+        code: "lista = [0] * bardzo_ogromna_liczba",
+        error: "MemoryError",
+        hint: "Program próbuje zużyć za dużo pamięci."
+      },
+      {
+        id: "keyboard",
+        code: "while True:\n    pass\n# użytkownik wciska Ctrl+C",
+        error: "KeyboardInterrupt",
+        hint: "Użytkownik przerywa działanie programu, zwykle przez Ctrl+C."
+      },
+      {
+        id: "permission",
+        code: 'open("chroniony_plik.txt", "w")',
+        error: "PermissionError",
+        hint: "System nie pozwala wykonać operacji, bo brakuje uprawnień."
+      },
+      {
+        id: "timeout",
+        code: "socket ustawiony z timeoutem\n# odpowiedź nie nadchodzi na czas",
+        error: "TimeoutError",
+        hint: "Operacja trwała za długo i przekroczyła limit czasu."
+      },
+      {
+        id: "tab",
+        code: "if True:\n    print('spacje')\n\tprint('tab')",
+        error: "TabError",
+        hint: "We wcięciach pomieszano tabulatory i spacje."
+      }
+    ]
+  }
+];
+
+let score = 0;
+let currentLevelIndex = 0;
+let matched = 0;
+let selectedLeft = null;
+let selectedRight = null;
+let lastSelected = null;
+let levelCompleted = false;
+
+function shuffle(array) {
+  return [...array].sort(() => Math.random() - 0.5);
+}
+
+function createCard(pair, side) {
+  const div = document.createElement("div");
+  div.className = "card";
+  div.dataset.id = pair.id;
+  div.dataset.side = side;
+
+  if (side === "left") {
+    div.innerHTML = `
+      <div>
+        <span class="code">${escapeHtml(pair.code)}</span>
+        <span class="hint-text"><span class="hint-label">Podpowiedź:</span> ${escapeHtml(pair.hint)}</span>
+      </div>
+    `;
+  } else {
+    div.textContent = pair.error;
+  }
+
+  div.addEventListener("click", () => selectCard(div));
+  return div;
+}
+
+function escapeHtml(text) {
+  return text
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+}
+
+function selectCard(card) {
+  if (levelCompleted) return;
+  if (card.classList.contains("correct")) return;
+
+  const side = card.dataset.side;
+
+  if (side === "left") {
+    if (selectedLeft) selectedLeft.classList.remove("selected");
+    selectedLeft = card;
+  } else {
+    if (selectedRight) selectedRight.classList.remove("selected");
+    selectedRight = card;
+  }
+
+  card.classList.add("selected");
+  lastSelected = card;
+
+  if (selectedLeft && selectedRight) {
+    checkPair();
+  }
+}
+
+function checkPair() {
+  const level = levels[currentLevelIndex];
+  const points = level.points;
+  const isCorrect = selectedLeft.dataset.id === selectedRight.dataset.id;
+
+  if (isCorrect) {
+    score += points;
+    matched += 1;
+    selectedLeft.classList.remove("selected");
+    selectedRight.classList.remove("selected");
+    selectedLeft.classList.add("correct");
+    selectedRight.classList.add("correct");
+    setMessage(`✅ Dobra para! +${points} pkt`);
+
+    if (matched === level.pairs.length) {
+      levelCompleted = true;
+      setTimeout(() => completeLevel(), 500);
+    }
+  } else {
+    score -= points;
+    selectedLeft.classList.add("wrong");
+    selectedRight.classList.add("wrong");
+    setMessage(`❌ To nie ta para. -${points} pkt`);
+
+    const leftTemp = selectedLeft;
+    const rightTemp = selectedRight;
+
+    setTimeout(() => {
+      leftTemp.classList.remove("selected", "wrong");
+      rightTemp.classList.remove("selected", "wrong");
+    }, 450);
+  }
+
+  selectedLeft = null;
+  selectedRight = null;
+  updateScore();
+}
+
+function completeLevel() {
+  const level = levels[currentLevelIndex];
+  setMessage("🏁 " + level.completeMessage);
+
+  if (currentLevelIndex < levels.length - 1) {
+    document.getElementById("nextLevelButton").classList.remove("hidden");
+  } else {
+    setTimeout(() => showFinalScreen(), 800);
+  }
+}
+
+function nextLevel() {
+  currentLevelIndex += 1;
+  renderLevel();
+}
+
+function setMessage(text) {
+  document.getElementById("message").textContent = text;
+}
+
+function updateScore() {
+  const level = levels[currentLevelIndex];
+  document.getElementById("score").textContent = score;
+  document.getElementById("levelNumber").textContent = level.number;
+  document.getElementById("matched").textContent = matched;
+  document.getElementById("total").textContent = level.pairs.length;
+  document.getElementById("levelPoints").textContent = `+${level.points} / -${level.points}`;
+}
+
+function showHint() {
+  setMessage("Podpowiedzi są już widoczne pod kafelkami z kodem 🙂");
+}
+
+function restartGame() {
+  score = 0;
+  currentLevelIndex = 0;
+  matched = 0;
+  selectedLeft = null;
+  selectedRight = null;
+  lastSelected = null;
+  levelCompleted = false;
+
+  document.getElementById("finalPanel").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  document.getElementById("rules").classList.remove("hidden");
+  document.getElementById("levelPanel").classList.remove("hidden");
+  document.getElementById("buttons").classList.remove("hidden");
+
+  renderLevel();
+}
+
+function renderLevel() {
+  const level = levels[currentLevelIndex];
+
+  matched = 0;
+  selectedLeft = null;
+  selectedRight = null;
+  lastSelected = null;
+  levelCompleted = false;
+
+  document.getElementById("message").textContent = "";
+  document.getElementById("nextLevelButton").classList.add("hidden");
+  document.getElementById("levelTitle").textContent = level.title;
+  document.getElementById("levelDescription").textContent = level.description;
+
+  const left = document.getElementById("leftCards");
+  const right = document.getElementById("rightCards");
+  left.innerHTML = "";
+  right.innerHTML = "";
+
+  const shuffledLeft = shuffle(level.pairs);
+  const shuffledRight = shuffle(level.pairs);
+
+  shuffledLeft.forEach(pair => {
+    left.appendChild(createCard(pair, "left"));
+  });
+
+  shuffledRight.forEach(pair => {
+    right.appendChild(createCard(pair, "right"));
+  });
+
+  updateScore();
+}
+
+function getRank(score) {
+  if (score >= 34) {
+    return {
+      title: "Mistrzem Debugowania 🏆",
+      text: "Rozpoznajesz błędy jak prawdziwy programista. Python może próbować Cię zaskoczyć, ale Ty już wiesz, gdzie szukać problemu."
+    };
+  }
+
+  if (score >= 25) {
+    return {
+      title: "Pythonowym Detektywem 🕵️",
+      text: "Bardzo dobry wynik! Większość błędów została poprawnie namierzona. Jeszcze chwila treningu i debugowanie będzie szło jak z automatu."
+    };
+  }
+
+  if (score >= 15) {
+    return {
+      title: "Łowcą Błędów 🐞",
+      text: "Dobra robota! Znasz już sporo wyjątków. Warto jeszcze poćwiczyć trudniejsze przypadki z poziomu 2 i 3."
+    };
+  }
+
+  if (score >= 5) {
+    return {
+      title: "Młodym Debuggerem 🌱",
+      text: "Pierwsze błędy rozpoznane! To dobry start. Najważniejsze jest patrzeć na kod i zastanawiać się, co dokładnie próbuje zrobić Python."
+    };
+  }
+
+  return {
+    title: "Kandydatem na Debuggera 🔧",
+    text: "Spokojnie, wyjątki na początku potrafią wyglądać groźnie. Zagraj jeszcze raz i skup się na najczęstszych błędach z pierwszego poziomu."
+  };
+}
+
+function showFinalScreen() {
+  const maxScore = levels.reduce((sum, level) => sum + level.points * level.pairs.length, 0);
+  const rank = getRank(score);
+
+  document.getElementById("game").classList.add("hidden");
+  document.getElementById("rules").classList.add("hidden");
+  document.getElementById("levelPanel").classList.add("hidden");
+  document.getElementById("buttons").classList.add("hidden");
+  document.getElementById("finalPanel").classList.remove("hidden");
+
+  document.getElementById("finalScore").textContent = `Twój wynik: ${score} / ${maxScore} punktów`;
+  document.getElementById("finalRank").textContent = `Jesteś: ${rank.title}`;
+  document.getElementById("finalText").textContent = rank.text;
+}
+
+renderLevel();
+</script>
+</body>
+</html>
