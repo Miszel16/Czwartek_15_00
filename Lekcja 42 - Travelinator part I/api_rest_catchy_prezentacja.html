@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>API & REST API — szybkie wyjaśnienie</title>
+  <style>
+    :root{
+      --bg:#0f1226;
+      --card:rgba(255,255,255,.08);
+      --card2:rgba(255,255,255,.13);
+      --text:#f7f7fb;
+      --muted:#b8bdd8;
+      --hot:#ff4d8d;
+      --cyan:#35d5ff;
+      --green:#48ffae;
+      --yellow:#ffd166;
+      --purple:#9b5cff;
+      --shadow:0 24px 70px rgba(0,0,0,.35);
+      --radius:28px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(circle at 15% 20%,rgba(53,213,255,.22),transparent 30%),radial-gradient(circle at 85% 30%,rgba(255,77,141,.22),transparent 30%),radial-gradient(circle at 50% 90%,rgba(155,92,255,.25),transparent 35%),var(--bg);color:var(--text);overflow:hidden}
+    body:before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,transparent,black 12%,black 90%,transparent);pointer-events:none}
+    .deck{height:100%;display:grid;place-items:center;padding:34px}
+    .slide{width:min(1180px,96vw);height:min(680px,88vh);display:none;position:relative;padding:54px 64px;border:1px solid rgba(255,255,255,.16);border-radius:var(--radius);background:linear-gradient(145deg,rgba(255,255,255,.12),rgba(255,255,255,.045));box-shadow:var(--shadow);backdrop-filter:blur(18px);overflow:hidden}
+    .slide.active{display:block;animation:pop .32s ease-out}
+    @keyframes pop{from{transform:translateY(14px) scale(.985);opacity:0}to{transform:none;opacity:1}}
+    .slide:after{content:"";position:absolute;right:-120px;bottom:-130px;width:360px;height:360px;border-radius:50%;background:linear-gradient(135deg,rgba(53,213,255,.2),rgba(255,77,141,.18));filter:blur(2px)}
+    h1,h2,h3,p{margin:0}
+    h1{font-size:72px;line-height:.95;letter-spacing:-3px;max-width:900px}
+    h2{font-size:46px;line-height:1.04;letter-spacing:-1.7px;margin-bottom:28px}
+    h3{font-size:24px;margin-bottom:8px}
+    p,li{font-size:25px;line-height:1.36;color:var(--muted)}
+    .small{font-size:18px;color:var(--muted)}
+    .kicker{font-size:18px;letter-spacing:.14em;text-transform:uppercase;color:var(--green);font-weight:800;margin-bottom:18px}
+    .accent{background:linear-gradient(90deg,var(--cyan),var(--hot));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .bigline{font-size:30px;color:#fff;margin-top:24px;max-width:920px}
+    .grid{display:grid;gap:18px}
+    .cols2{grid-template-columns:1fr 1fr}.cols3{grid-template-columns:repeat(3,1fr)}.cols4{grid-template-columns:repeat(4,1fr)}
+    .card{position:relative;z-index:1;padding:22px;border-radius:22px;background:var(--card);border:1px solid rgba(255,255,255,.12)}
+    .card strong{color:#fff}.card p{font-size:21px}.card .emoji{font-size:40px;margin-bottom:12px;display:block}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);font-weight:800;color:#fff;margin:5px 5px 0 0}
+    .flow{display:flex;align-items:center;gap:18px;margin-top:34px}
+    .bubble{flex:1;min-height:125px;border-radius:24px;padding:22px;text-align:center;background:var(--card2);border:1px solid rgba(255,255,255,.12)}
+    .bubble .icon{font-size:38px;display:block;margin-bottom:10px}.bubble b{font-size:25px}.arrow{font-size:42px;color:var(--cyan);font-weight:900}
+    code{font-family:"Cascadia Code",Consolas,monospace;color:#fff;background:rgba(255,255,255,.12);padding:.13em .35em;border-radius:8px}
+    pre{position:relative;z-index:1;margin:0;background:#111827;border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:24px;overflow:auto;color:#e5e7eb;font-size:20px;line-height:1.45;box-shadow:inset 0 0 0 1px rgba(255,255,255,.03)}
+    .method{font-weight:900;padding:6px 10px;border-radius:10px;color:#06121f;background:var(--green);display:inline-block;min-width:78px;text-align:center;margin-right:10px}.post{background:var(--cyan)}.put{background:var(--yellow)}.del{background:var(--hot);color:#fff}
+    .status{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:center;margin:10px 0}.status b{font-size:26px;border-radius:16px;padding:14px;text-align:center;background:rgba(255,255,255,.13)}.status span{font-size:21px;color:var(--muted)}
+    .footer{position:absolute;left:64px;right:64px;bottom:28px;display:flex;justify-content:space-between;align-items:center;color:rgba(255,255,255,.55);font-size:15px;z-index:3}.progress{height:6px;width:240px;background:rgba(255,255,255,.13);border-radius:99px;overflow:hidden}.bar{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--hot));border-radius:99px}
+    .nav{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;gap:10px;z-index:10}.nav button{border:0;border-radius:999px;background:rgba(255,255,255,.14);color:#fff;padding:12px 18px;font-weight:800;cursor:pointer;backdrop-filter:blur(10px)}.nav button:hover{background:rgba(255,255,255,.22)}
+    .tag{position:absolute;right:48px;top:38px;font-weight:900;color:rgba(255,255,255,.15);font-size:88px;letter-spacing:-5px}.highlight{color:#fff;font-weight:900}.mini{font-size:20px}.center{display:grid;place-items:center;height:100%;text-align:center}.check li{margin:13px 0}.check li::marker{content:"✅  "}
+    @media(max-width:850px){.slide{padding:38px 30px;height:88vh;overflow:auto}.cols2,.cols3,.cols4{grid-template-columns:1fr}.flow{flex-direction:column}.arrow{transform:rotate(90deg)}h1{font-size:48px}h2{font-size:34px}p,li{font-size:20px}.footer{display:none}.tag{display:none}}
+  </style>
+</head>
+<body>
+  <main class="deck">
+    <section class="slide active">
+      <div class="tag">API</div>
+      <div class="center">
+        <div>
+          <div class="kicker">REST API w 10 minut</div>
+          <h1>Jak aplikacje <span class="accent">gadają</span> ze sobą?</h1>
+          <p class="bigline">API to taki punkt kontaktu: jedna aplikacja pyta, druga odpowiada — według jasnych zasad.</p>
+        </div>
+      </div>
+      <div class="footer"><span>← → / spacja</span><span class="progress"><span class="bar"></span></span></div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">1. API</div>
+      <h2>API = kelner między programami</h2>
+      <div class="flow">
+        <div class="bubble"><span class="icon">🧑‍💻</span><b>Klient</b><p>wysyła request</p></div>
+        <div class="arrow">→</div>
+        <div class="bubble"><span class="icon">🍽️</span><b>API</b><p>przekazuje zamówienie</p></div>
+        <div class="arrow">→</div>
+        <div class="bubble"><span class="icon">🖥️</span><b>Serwer</b><p>robi robotę</p></div>
+        <div class="arrow">→</div>
+        <div class="bubble"><span class="icon">📦</span><b>Response</b><p>wraca z danymi</p></div>
+      </div>
+      <p class="bigline"><span class="highlight">API mówi:</span> co można zrobić, jakie dane wysłać i jaką odpowiedź dostaniesz.</p>
+      <div class="footer"><span>Analogia: restauracja</span><span class="progress"><span class="bar"></span></span></div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">2. Po co API?</div>
+      <h2>Frontend i backend nie muszą się znać „od środka”</h2>
+      <div class="grid cols3">
+        <div class="card"><span class="emoji">🎨</span><h3>Frontend</h3><p>To, co widzi użytkownik: strona, aplikacja, formularz.</p></div>
+        <div class="card"><span class="emoji">🔌</span><h3>API</h3><p>Most: przyjmuje zapytania i oddaje odpowiedzi.</p></div>
+        <div class="card"><span class="emoji">🗄️</span><h3>Backend</h3><p>Logika, baza danych, autoryzacja, przetwarzanie.</p></div>
+      </div>
+      <p class="bigline">Dzięki API różne aplikacje mogą wymieniać dane w uporządkowany sposób.</p>
+      <div class="footer"><span>API = kontrakt komunikacji</span><span class="progress"><span class="bar"></span></span></div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">3. HTTP</div>
+      <h2>HTTP to protokół, czyli zasady rozmowy</h2>
+      <div class="grid cols2">
+        <div class="card"><span class="emoji">📜</span><h3>Protokół mówi „jak”</h3><p>Kto wysyła zapytanie, w jakiej formie i jak rozumieć odpowiedź.</p></div>
+        <div class="card"><span class="emoji">🧭</span><h3>API mówi „co”</h3><p>Jakie zasoby istnieją i co można z nimi zrobić.</p></div>
+      </div>
+      <p class="bigline"><span class="highlight">Request</span> leci do serwera, a <span class="highlight">response</span> wraca z wynikiem.</p>
+      <div class="footer"><span>HTTP = język internetu</span><span class="progress"><span class="bar"></span></span></div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">4. Request</div>
+      <h2>Z czego składa się zapytanie HTTP?</h2>
+      <div class="grid cols2">
+        <div class="card"><h3>1) URL</h3><p><code>/users/1</code> — adres zasobu</p></div>
+        <div class="card"><h3>2) Metoda</h3><p><code>GET</code>, <code>POST</code>, <code>PUT</code>, <code>DELETE</code></p></div>
+        <div class="card"><h3>3) Headers</h3><p>Dodatkowe info: token, format danych, język.</p></div>
+        <div class="card"><h3>4) Body</h3><p>Dane wysyłane np. przy tworzeniu lub edycji.</p></div>
+      </div>
+      <div class="footer"><span>Najczęściej body = JSON</span><span class="progress"><span class="bar"></span></span></div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">5. REST</div>
+      <h2>REST = styl projektowania API</h2>
+      <p class="bigline">REST mówi, jak robić API tak, żeby było <span class="highlight">proste, przewidywalne i skalowalne</span>.</p>
+      <div class="grid cols3" style="margin-top:32px">
+        <div class="card"><span class="emoji">📦</span><h3>Zasoby</h3><p>Myślimy o rzeczach: users, orders, products.</p></div>
+        <div class="card"><span class="emoji">🧾</span><h3>Reprezentacje</h3><p>Dane lecą zwykle jako JSON.</p></div>
+        <div class="card"><span class="emoji">🧱</span><h3>Zasady</h3><p>REST ma kilka warunków, które porządkują API.</p></div>
+      </div>
+      <div class="footer"><span>REST API = API zgodne z REST</span><span class="progress"><span class="bar"></span></span></div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">6. Warunki REST</div>
+      <h2>REST w praktyce: 6 zasad</h2>
+      <div class="grid cols3">
+        <div class="card"><h3>Klient–serwer</h3><p>Frontend i backend są niezależne.</p></div>
+        <div class="card"><h3>Stateless</h3><p>Każde zapytanie ma komplet informacji.</p></div>
+        <div class="card"><h3>Cache</h3><p>Odpowiedzi mogą być zapamiętywane, gdy ma to sens.</p></div>
+        <div class="card"><h3>Uniform interface</h3><p>Stały, przewidywalny sposób używania API.</p></div>
+        <div class="card"><h3>Layered system</h3><p>Po drodze mogą być warstwy, np. proxy.</p></div>
+        <div class="card"><h3>Code on demand</h3><p>Opcjonalnie: serwer może wysłać kod do wykonania.</p></div>
+      </div>
+      <div class="footer"><span>Najważniejsze: stateless + zasoby + metody HTTP</span><span class="progress"><span class="bar"></span></span></div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">7. REST API</div>
+      <h2>REST nie robi akcji. REST operuje na zasobach.</h2>
+      <div class="grid cols2">
+        <div class="card"><h3>❌ mniej REST-owo</h3><p><code>/getUser</code><br><code>/createUser</code><br><code>/deleteUser</code></p></div>
+        <div class="card"><h3>✅ bardziej REST-owo</h3><p><code>GET /users/1</code><br><code>POST /users</code><br><code>DELETE /users/1</code></p></div>
+      </div>
+      <p class="bigline">Adres mówi <span class="highlight">czego dotykasz</span>, metoda mówi <span class="highlight">co z tym robisz</span>.</p>
+      <div class="footer"><span>URL = rzecz, metoda = akcja</span><span class="progress"><span class="bar"></span></span></div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">8. Metody HTTP</div>
+      <h2>CRUD po ludzku</h2>
+      <div class="grid cols2">
+        <div class="card"><p><span class="method">GET</span> pobierz dane<br><code>GET /users</code></p></div>
+        <div class="card"><p><span class="method post">POST</span> utwórz dane<br><code>POST /users</code></p></div>
+        <div class="card"><p><span class="method put">PUT</span> zmodyfikuj dane<br><code>PUT /users/1</code></p></div>
+        <div class="card"><p><span class="method del">DELETE</span> usuń dane<br><code>DELETE /users/1</code></p></div>
+      </div>
+      <div class="footer"><span>CRUD: Create, Read, Update, Delete</span><span class="progress"><span class="bar"></span></span></div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">9. Python requests</div>
+      <h2>requests = proste zapytania HTTP w Pythonie</h2>
+      <pre><code>import requests
+
+url = "https://api.example.com/users"
+headers = {"Authorization": "Bearer TOKEN"}
+data = {"name": "Alicja", "role": "Python dev"}
+
+response = requests.post(url, json=data, headers=headers)
+
+print(response.status_code)  # np. 201
+print(response.json())       # odpowiedź jako słownik/lista</code></pre>
+      <p class="bigline mini">Najczęściej używasz: <code>requests.get()</code>, <code>post()</code>, <code>put()</code>, <code>delete()</code>.</p>
+      <div class="footer"><span>requests ogarnia też headers i JSON</span><span class="progress"><span class="bar"></span></span></div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">10. Kody HTTP</div>
+      <h2>Status code = szybka diagnoza odpowiedzi</h2>
+      <div class="grid cols2">
+        <div>
+          <div class="status"><b>1xx</b><span>info: serwer dostał request i coś z nim robi</span></div>
+          <div class="status"><b>2xx</b><span>sukces: np. <code>200 OK</code>, <code>201 Created</code></span></div>
+          <div class="status"><b>3xx</b><span>przekierowanie: zasób jest gdzie indziej</span></div>
+        </div>
+        <div>
+          <div class="status"><b>4xx</b><span>błąd klienta: np. <code>400</code>, <code>401</code>, <code>403</code>, <code>404</code></span></div>
+          <div class="status"><b>5xx</b><span>błąd serwera: np. <code>500</code>, <code>502</code>, <code>503</code></span></div>
+        </div>
+      </div>
+      <p class="bigline">Do zapamiętania: <span class="highlight">2xx super</span>, <span class="highlight">4xx ty coś źle wysłałaś</span>, <span class="highlight">5xx serwer ma problem</span>.</p>
+      <div class="footer"><span>Status mówi, co poszło dobrze/źle</span><span class="progress"><span class="bar"></span></span></div>
+    </section>
+
+    <section class="slide">
+      <div class="kicker">11. Mini checklista</div>
+      <h2>Jak czytać dowolne REST API?</h2>
+      <ul class="check">
+        <li>Jaki jest <span class="highlight">URL</span> zasobu?</li>
+        <li>Jaką mam użyć <span class="highlight">metodę HTTP</span>?</li>
+        <li>Czy potrzebuję <span class="highlight">headers</span>, np. tokenu?</li>
+        <li>Czy wysyłam <span class="highlight">body</span>, np. JSON?</li>
+        <li>Jaki <span class="highlight">status code</span> dostałam i co oznacza?</li>
+      </ul>
+      <div class="footer"><span>To wystarcza na start</span><span class="progress"><span class="bar"></span></span></div>
+    </section>
+
+    <section class="slide">
+      <div class="center">
+        <div>
+          <div class="kicker">Podsumowanie</div>
+          <h1>API to <span class="accent">kontakt</span>. HTTP to język. REST to styl.</h1>
+          <p class="bigline">REST API = komunikacja aplikacji przez HTTP, zwykle JSON-em, zgodnie z prostymi zasadami i metodami typu GET/POST/PUT/DELETE.</p>
+        </div>
+      </div>
+      <div class="footer"><span>Koniec ✨</span><span class="progress"><span class="bar"></span></span></div>
+    </section>
+  </main>
+
+  <div class="nav">
+    <button id="prev">←</button>
+    <button id="next">→</button>
+  </div>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    let i = 0;
+    function show(n){
+      i = (n + slides.length) % slides.length;
+      slides.forEach((s,idx)=>{
+        s.classList.toggle('active', idx === i);
+        const bar = s.querySelector('.bar');
+        if(bar) bar.style.width = `${((i+1)/slides.length)*100}%`;
+      });
+    }
+    document.getElementById('next').onclick = () => show(i+1);
+    document.getElementById('prev').onclick = () => show(i-1);
+    document.addEventListener('keydown', e => {
+      if(['ArrowRight','PageDown',' '].includes(e.key)){ e.preventDefault(); show(i+1); }
+      if(['ArrowLeft','PageUp','Backspace'].includes(e.key)){ e.preventDefault(); show(i-1); }
+      if(e.key === 'Home') show(0);
+      if(e.key === 'End') show(slides.length-1);
+    });
+    show(0);
+  </script>
+</body>
+</html>

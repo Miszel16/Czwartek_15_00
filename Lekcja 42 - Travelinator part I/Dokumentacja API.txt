@@ -1,0 +1,10 @@
+# Dokumentacja API - pozyskanie geolokalizacji: 
+# https://openweathermap.org/api/geocoding-api?collection=other
+
+
+# Dokumentacja API - pozyskanie pogody:
+# https://openweathermap.org/current?collection=current_forecast
+
+
+# Kraj IP:
+# https://country.is/
