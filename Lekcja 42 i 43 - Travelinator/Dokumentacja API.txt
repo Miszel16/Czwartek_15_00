@@ -1,0 +1,20 @@
+# Dokumentacja API - pozyskanie geolokalizacji: 
+# https://openweathermap.org/api/geocoding-api?collection=other
+
+
+# Dokumentacja API - pozyskanie pogody:
+# https://openweathermap.org/current?collection=current_forecast
+
+
+# Kraj IP:
+# https://country.is/
+
+
+# Kraj i waluta:
+# https://countries.dev/alpha/PL
+
+
+# Frankfurter - kursy walut: https://frankfurter.dev/
+# https://api.frankfurter.dev/v2/rate/PLN/EUR
+
+# https://api.frankfurter.dev/v2/rate/WALUTA_STARTOWA/WALUTA_DOCELOWA
