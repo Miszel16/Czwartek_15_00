@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Scraping – Pokémon</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #10131a;
+        color: #f7f7f7;
+        overflow: hidden;
+    }
+
+    .presentation {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+    }
+
+    .slide {
+        display: none;
+        width: 100%;
+        height: 100%;
+        padding: 7vh 8vw;
+        position: absolute;
+        inset: 0;
+        background:
+            radial-gradient(circle at top right, rgba(255, 215, 0, 0.18), transparent 28%),
+            linear-gradient(135deg, #111827, #1f2937);
+    }
+
+    .slide.active {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        animation: fade 0.35s ease;
+    }
+
+    @keyframes fade {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+        font-size: clamp(42px, 7vw, 88px);
+        margin: 0 0 18px;
+        line-height: 1;
+    }
+
+    h2 {
+        font-size: clamp(34px, 5vw, 64px);
+        margin: 0 0 28px;
+    }
+
+    h3 {
+        font-size: clamp(22px, 2.4vw, 34px);
+        margin: 0 0 12px;
+    }
+
+    p, li {
+        font-size: clamp(20px, 2.1vw, 31px);
+        line-height: 1.4;
+    }
+
+    .yellow {
+        color: #ffd54a;
+    }
+
+    .red {
+        color: #ff5b64;
+    }
+
+    .blue {
+        color: #62b6ff;
+    }
+
+    .subtitle {
+        font-size: clamp(22px, 2.8vw, 38px);
+        color: #cbd5e1;
+        max-width: 900px;
+    }
+
+    .big-question {
+        font-size: clamp(30px, 4vw, 58px);
+        font-weight: bold;
+        margin: 25px 0;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+        margin-top: 20px;
+    }
+
+    .card {
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.13);
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+    }
+
+    .card strong {
+        color: #ffd54a;
+    }
+
+    .flow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 35px;
+    }
+
+    .step {
+        background: #f8fafc;
+        color: #111827;
+        padding: 18px 24px;
+        border-radius: 18px;
+        font-weight: bold;
+        font-size: clamp(18px, 2vw, 28px);
+    }
+
+    .arrow {
+        font-size: 36px;
+        color: #ffd54a;
+        font-weight: bold;
+    }
+
+    code {
+        font-family: Consolas, monospace;
+    }
+
+    .code {
+        background: #080b10;
+        border-radius: 18px;
+        padding: 22px 26px;
+        font-family: Consolas, monospace;
+        font-size: clamp(16px, 1.65vw, 24px);
+        line-height: 1.5;
+        border-left: 6px solid #ffd54a;
+        white-space: pre-wrap;
+        color: #dbeafe;
+    }
+
+    .tag {
+        color: #ff7b84;
+    }
+
+    .attr {
+        color: #ffd54a;
+    }
+
+    .text {
+        color: #a7f3d0;
+    }
+
+    .poke-wrap {
+        display: flex;
+        align-items: center;
+        gap: 55px;
+    }
+
+    .pokeball {
+        width: 190px;
+        height: 190px;
+        border-radius: 50%;
+        background: linear-gradient(#ef4444 0 46%, #111827 46% 54%, #f8fafc 54%);
+        border: 8px solid #111827;
+        position: relative;
+        flex-shrink: 0;
+        box-shadow: 0 18px 50px rgba(0,0,0,.35);
+    }
+
+    .pokeball::after {
+        content: "";
+        width: 52px;
+        height: 52px;
+        background: #f8fafc;
+        border: 8px solid #111827;
+        border-radius: 50%;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .mini {
+        color: #94a3b8;
+        font-size: 18px;
+        margin-top: 25px;
+    }
+
+    .counter {
+        position: fixed;
+        right: 28px;
+        bottom: 20px;
+        color: #94a3b8;
+        font-size: 16px;
+        z-index: 10;
+    }
+
+    .hint {
+        position: fixed;
+        left: 28px;
+        bottom: 20px;
+        color: #64748b;
+        font-size: 15px;
+        z-index: 10;
+    }
+
+    .pill {
+        display: inline-block;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(255,213,74,.15);
+        color: #ffd54a;
+        font-weight: bold;
+        font-size: 18px;
+        margin-bottom: 18px;
+    }
+
+    ul {
+        margin-top: 10px;
+    }
+
+    @media (max-width: 850px) {
+        .grid {
+            grid-template-columns: 1fr;
+        }
+
+        .poke-wrap {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .pokeball {
+            width: 130px;
+            height: 130px;
+        }
+
+        .slide {
+            padding: 6vh 6vw;
+            overflow-y: auto;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<div class="presentation">
+
+    <!-- 1 -->
+    <section class="slide active">
+        <div class="poke-wrap">
+            <div class="pokeball"></div>
+
+            <div>
+                <div class="pill">Python + Internet</div>
+                <h1>Web <span class="yellow">Scraping</span></h1>
+                <p class="subtitle">
+                    Jak sprawić, żeby Python sam odczytywał informacje ze strony internetowej?
+                </p>
+                <p class="mini">Projekt: własny Pokédex 📖⚡</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="slide">
+        <h2>Co to jest <span class="yellow">web scraping</span>?</h2>
+
+        <p class="big-question">
+            To automatyczne pobieranie informacji ze stron internetowych.
+        </p>
+
+        <div class="grid">
+            <div class="card">
+                👤 <h3>Człowiek</h3>
+                <p>wchodzi na stronę → patrzy → przepisuje dane</p>
+            </div>
+
+            <div class="card">
+                🐍 <h3>Python</h3>
+                <p>pobiera stronę → wyszukuje dane → zapisuje wynik</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="slide">
+        <h2>Jak to działa?</h2>
+
+        <div class="flow">
+            <div class="step">🌐 strona WWW</div>
+            <div class="arrow">→</div>
+            <div class="step">requests</div>
+            <div class="arrow">→</div>
+            <div class="step">HTML</div>
+            <div class="arrow">→</div>
+            <div class="step">BeautifulSoup</div>
+            <div class="arrow">→</div>
+            <div class="step">📦 dane</div>
+        </div>
+
+        <p class="subtitle" style="margin-top:45px;">
+            Najpierw pobieramy stronę, a potem szukamy w jej kodzie tego,
+            co nas interesuje.
+        </p>
+    </section>
+
+    <!-- 4 -->
+    <section class="slide">
+        <h2>Chwila… czym jest <span class="blue">HTML</span>?</h2>
+
+        <p>
+            HTML opisuje <strong>strukturę strony internetowej</strong>.
+            Strona składa się z elementów zapisanych w znacznikach.
+        </p>
+
+        <div class="code">&lt;<span class="tag">div</span> <span class="attr">class</span>="pokemon"&gt;
+    &lt;<span class="tag">h2</span>&gt;<span class="text">Pikachu</span>&lt;/<span class="tag">h2</span>&gt;
+    &lt;<span class="tag">p</span>&gt;<span class="text">Electric</span>&lt;/<span class="tag">p</span>&gt;
+&lt;/<span class="tag">div</span>&gt;</div>
+
+        <p class="mini">
+            Dla Pythona to bardzo wygodne: może znaleźć konkretny znacznik albo klasę.
+        </p>
+    </section>
+
+    <!-- 5 -->
+    <section class="slide">
+        <h2>Nasze narzędzia 🔧</h2>
+
+        <div class="grid">
+            <div class="card">
+                <h3 class="yellow">requests</h3>
+                <p>Pobiera zawartość strony internetowej.</p>
+                <div class="code">response = requests.get(url)</div>
+            </div>
+
+            <div class="card">
+                <h3 class="yellow">BeautifulSoup</h3>
+                <p>Pomaga przeszukiwać kod HTML.</p>
+                <div class="code">soup = BeautifulSoup(
+    response.text,
+    "html.parser"
+)</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6 -->
+    <section class="slide">
+        <h2>Szukamy elementów 🔎</h2>
+
+        <div class="grid">
+            <div class="card">
+                <h3><code>find()</code></h3>
+                <p>Znajduje <strong>pierwszy</strong> pasujący element.</p>
+                <div class="code">name = card.find("a")</div>
+            </div>
+
+            <div class="card">
+                <h3><code>find_all()</code></h3>
+                <p>Znajduje <strong>wszystkie</strong> pasujące elementy.</p>
+                <div class="code">cards = soup.find_all(
+    "div",
+    class_="infocard"
+)</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7 -->
+    <section class="slide">
+        <h2>Nasze pierwsze zadanie ⚡</h2>
+
+        <p class="big-question">
+            Znajdźmy wszystkie Pokémony na stronie i wypiszmy ich nazwy.
+        </p>
+
+        <div class="flow">
+            <div class="step">PokemonDB</div>
+            <div class="arrow">→</div>
+            <div class="step">karty Pokémonów</div>
+            <div class="arrow">→</div>
+            <div class="step">nazwa</div>
+            <div class="arrow">→</div>
+            <div class="step">print()</div>
+        </div>
+
+        <p class="mini">
+            Potem rozbudujemy ten sam kod o numer, typ i obrazek.
+        </p>
+    </section>
+
+    <!-- 8 -->
+    <section class="slide">
+        <h2>A na końcu…</h2>
+
+        <div class="poke-wrap">
+            <div class="pokeball"></div>
+
+            <div>
+                <p class="big-question">
+                    Python sam zbuduje nam własny <span class="yellow">Pokédex PDF</span>.
+                </p>
+
+                <div class="flow" style="justify-content:flex-start;">
+                    <div class="step">scraping</div>
+                    <div class="arrow">→</div>
+                    <div class="step">dane</div>
+                    <div class="arrow">→</div>
+                    <div class="step">PDF</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<div class="hint">← → zmiana slajdu</div>
+<div class="counter" id="counter"></div>
+
+<script>
+    const slides = document.querySelectorAll(".slide");
+    const counter = document.getElementById("counter");
+    let current = 0;
+
+    function showSlide(index) {
+        slides[current].classList.remove("active");
+        current = (index + slides.length) % slides.length;
+        slides[current].classList.add("active");
+        counter.textContent = `${current + 1} / ${slides.length}`;
+    }
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowRight" || event.key === " ") {
+            showSlide(current + 1);
+        }
+
+        if (event.key === "ArrowLeft") {
+            showSlide(current - 1);
+        }
+    });
+
+    document.addEventListener("click", () => {
+        showSlide(current + 1);
+    });
+
+    showSlide(0);
+</script>
+
+</body>
+</html>
