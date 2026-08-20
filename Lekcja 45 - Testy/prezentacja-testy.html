@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Testy — co definiuje dobry program?</title>
+  <style>
+    :root{
+      --bg:#070a12; --bg2:#0d1222; --text:#eef4ff; --muted:#9fb0c8;
+      --cyan:#29d8ff; --green:#7cff9b; --orange:#ff9f43; --pink:#ff4ecd; --red:#ff5d6c;
+      --card:rgba(255,255,255,.075); --line:rgba(255,255,255,.16);
+      --code:#0b1020;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%; margin:0; background:var(--bg); color:var(--text); font-family:Inter,Segoe UI,Arial,sans-serif; overflow:hidden}
+    body:before{content:""; position:fixed; inset:-20%; background:
+      radial-gradient(circle at 15% 20%, rgba(41,216,255,.25), transparent 25%),
+      radial-gradient(circle at 85% 25%, rgba(255,78,205,.17), transparent 22%),
+      radial-gradient(circle at 60% 90%, rgba(124,255,155,.13), transparent 25%);
+      filter: blur(20px); z-index:0}
+    .deck{position:relative; z-index:1; height:100vh; width:100vw}
+    .slide{position:absolute; inset:0; padding:5.5vh 6vw; display:none; align-items:center; justify-content:center}
+    .slide.active{display:flex}
+    .content{width:min(1180px,100%); min-height:72vh; display:flex; flex-direction:column; justify-content:center}
+    h1{font-size:clamp(48px,7vw,92px); line-height:.95; margin:0 0 22px; letter-spacing:-.06em}
+    h2{font-size:clamp(36px,5vw,64px); line-height:1; margin:0 0 28px; letter-spacing:-.045em}
+    h3{font-size:clamp(23px,2.2vw,34px); margin:0 0 12px}
+    p,li{font-size:clamp(20px,2vw,30px); line-height:1.28; color:var(--muted)}
+    .lead{font-size:clamp(25px,2.7vw,40px); color:#dce8ff; max-width:900px}
+    .accent{background:linear-gradient(90deg,var(--cyan),var(--green)); -webkit-background-clip:text; background-clip:text; color:transparent}
+    .grid{display:grid; gap:22px}.cols2{grid-template-columns:1fr 1fr}.cols3{grid-template-columns:repeat(3,1fr)}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.045)); border:1px solid var(--line); border-radius:28px; padding:26px; box-shadow:0 18px 60px rgba(0,0,0,.25)}
+    .card p{margin:0}.small p,.small li{font-size:clamp(18px,1.6vw,24px)}
+    .badge{display:inline-block; padding:8px 14px; border:1px solid var(--line); border-radius:999px; color:#cfe3ff; background:rgba(255,255,255,.07); margin-bottom:18px; font-weight:700; letter-spacing:.03em}
+    .pillgrid{display:flex; flex-wrap:wrap; gap:14px; margin-top:18px}
+    .pill{display:inline-flex; align-items:center; justify-content:center; padding:12px 16px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.08); font-weight:800; font-size:clamp(18px,1.55vw,25px)}
+    .pill.cyan{box-shadow:0 0 0 1px rgba(41,216,255,.35) inset; background:rgba(41,216,255,.11)}
+    .pill.green{box-shadow:0 0 0 1px rgba(124,255,155,.35) inset; background:rgba(124,255,155,.10)}
+    .pill.orange{box-shadow:0 0 0 1px rgba(255,159,67,.35) inset; background:rgba(255,159,67,.10)}
+    .pill.pink{box-shadow:0 0 0 1px rgba(255,78,205,.35) inset; background:rgba(255,78,205,.10)}
+    .assert-table{display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-top:20px}
+    .assert-row{border:1px solid var(--line); border-radius:22px; padding:18px 20px; background:rgba(255,255,255,.065)}
+    .assert-row b{display:block; color:#fff; font-size:clamp(19px,1.7vw,27px); margin-bottom:4px}.assert-row span{color:var(--muted); font-size:clamp(16px,1.25vw,20px)}
+    .code{font-family:Consolas,Menlo,monospace; background:var(--code); border:1px solid var(--line); border-radius:22px; padding:22px; color:#d6e3ff; font-size:clamp(18px,1.45vw,24px); line-height:1.35; white-space:pre-wrap; box-shadow:inset 0 0 0 1px rgba(255,255,255,.03)}
+    .ok{color:var(--green)} .bad{color:var(--red)} .warn{color:var(--orange)} .cyan{color:var(--cyan)} .pink{color:var(--pink)}
+    .flow{display:flex; gap:18px; align-items:stretch; flex-wrap:wrap}.step{flex:1; min-width:190px; padding:22px; border-radius:26px; background:var(--card); border:1px solid var(--line)}
+    .step b{font-size:clamp(24px,2.4vw,35px)}.step span{display:block; margin-top:8px; color:var(--muted); font-size:clamp(17px,1.5vw,22px)}
+    .nav{position:fixed; z-index:5; left:6vw; right:6vw; bottom:3.2vh; display:flex; align-items:center; justify-content:space-between; color:#91a4c2; font-size:15px}
+    .progress{height:6px; width:260px; background:rgba(255,255,255,.12); border-radius:20px; overflow:hidden}.bar{height:100%; width:0; background:linear-gradient(90deg,var(--cyan),var(--green)); transition:.2s}
+    kbd{font:inherit; font-size:14px; border:1px solid var(--line); border-bottom-width:3px; padding:4px 9px; border-radius:8px; color:#dce8ff; background:rgba(255,255,255,.08)}
+    ul{margin:0; padding-left:1.2em} li{margin:.35em 0}.huge{font-size:clamp(58px,8vw,120px); margin:0}.center{text-align:center}.split{display:grid; grid-template-columns:1.05fr .95fr; gap:32px; align-items:center}
+    .mini{font-size:clamp(16px,1.35vw,21px)!important}.quote{font-size:clamp(30px,4vw,58px); color:#fff; line-height:1.05; letter-spacing:-.04em}
+    @media(max-width:850px){.cols2,.cols3,.split{grid-template-columns:1fr}.content{min-height:80vh}.slide{padding:5vh 5vw}.flow{display:grid}.progress{width:180px}}
+  </style>
+</head>
+<body>
+  <main class="deck">
+    <section class="slide active">
+      <div class="content center">
+        <div class="badge">Python • testy jednostkowe</div>
+        <h1>Testy, czyli <span class="accent">co definiuje dobry program</span></h1>
+        <p class="lead" style="margin-inline:auto">Jak sprawdzić, czy kod naprawdę działa — unittest vs pytest</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content">
+        <h2>Co definiuje dobry program?</h2>
+        <div class="grid cols3">
+          <div class="card"><h3 class="cyan">1. Działa poprawnie</h3><p>Dla konkretnych danych zwraca konkretny, oczekiwany wynik.</p></div>
+          <div class="card"><h3 class="green">2. Da się zmieniać</h3><p>Po poprawce szybko widzimy, czy przypadkiem czegoś nie zepsuliśmy.</p></div>
+          <div class="card"><h3 class="orange">3. Jest sprawdzalny</h3><p>Nie trzeba wierzyć „na oko” — można uruchomić test i dostać jasną odpowiedź.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content">
+        <h2>Test = definicja poprawnego działania</h2>
+        <div class="split">
+          <div class="quote">Dobry test mówi:<br><span class="accent">„dla tego wejścia oczekuję takiego wyniku”</span></div>
+          <div class="card small">
+            <h3 class="cyan">Myślimy jak tester</h3>
+            <ul>
+              <li>Co funkcja dostaje na wejściu?</li>
+              <li>Co powinna zwrócić?</li>
+              <li>Co może pójść źle?</li>
+              <li>Jak sprawdzić to automatycznie?</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+
+    <section class="slide">
+      <div class="content">
+        <h2>Mini teoria: rodzaje testów</h2>
+        <p class="lead">Dzisiaj skupiamy się na <span class="accent">testach jednostkowych</span>, ale warto znać większy obraz.</p>
+        <div class="grid cols3 small" style="margin-top:22px">
+          <div class="card"><h3 class="cyan">Jednostkowe</h3><p>Sprawdzają jedną funkcję, metodę albo klasę. Szybkie i najlepsze na start.</p></div>
+          <div class="card"><h3 class="green">Integracyjne</h3><p>Sprawdzają, czy kilka części programu dobrze działa razem.</p></div>
+          <div class="card"><h3 class="orange">Systemowe</h3><p>Sprawdzają aplikację jako całość, tak jak używałby jej użytkownik.</p></div>
+          <div class="card"><h3 class="pink">Regresji</h3><p>Chronią przed sytuacją: „poprawiliśmy jedno, zepsuliśmy drugie”.</p></div>
+          <div class="card"><h3 class="cyan">Wydajnościowe</h3><p>Sprawdzają, czy program działa wystarczająco szybko.</p></div>
+          <div class="card"><h3 class="green">Bezpieczeństwa</h3><p>Szukają miejsc, przez które ktoś mógłby program źle wykorzystać.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content">
+        <h2>Jak czytać wynik testu?</h2>
+        <div class="grid cols2">
+          <div class="card"><h3 class="ok">PASS / OK</h3><p>Test przeszedł. Program zachował się tak, jak oczekiwaliśmy.</p></div>
+          <div class="card"><h3 class="bad">FAIL</h3><p>Test nie przeszedł. To nie koniec świata — to wskazówka, gdzie szukać błędu.</p></div>
+        </div>
+        <p class="lead" style="margin-top:28px">Dobry test mówi nie tylko, że coś jest źle, ale też <span class="cyan">co dokładnie</span> się nie zgadza.</p>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content">
+        <h2>unittest — wersja „szkolna”</h2>
+        <div class="split">
+          <div class="card small">
+            <h3 class="cyan">Co trzeba zapamiętać?</h3>
+            <ul>
+              <li>wbudowany w Pythona</li>
+              <li>testy piszemy w klasie</li>
+              <li>dobry do nauki klasycznego stylu testów</li>
+              <li>ma dużo gotowych metod sprawdzających</li>
+            </ul>
+          </div>
+          <div class="card small">
+            <h3 class="green">Słowa-klucze</h3>
+            <div class="pillgrid">
+              <span class="pill cyan">unittest</span>
+              <span class="pill green">TestCase</span>
+              <span class="pill orange">test_</span>
+              <span class="pill pink">assertEqual</span>
+              <span class="pill cyan">assertTrue</span>
+              <span class="pill green">assertFalse</span>
+              <span class="pill orange">main()</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content">
+        <h2>pytest — krócej i wygodniej</h2>
+        <div class="split">
+          <div class="card small">
+            <h3 class="green">Słowa-klucze</h3>
+            <div class="pillgrid">
+              <span class="pill green">pytest</span>
+              <span class="pill cyan">assert</span>
+              <span class="pill orange">not</span>
+              <span class="pill pink">-v</span>
+              <span class="pill green">parametrize</span>
+              <span class="pill cyan">capsys</span>
+              <span class="pill orange">pip install</span>
+            </div>
+          </div>
+          <div class="card small">
+            <h3 class="cyan">Co trzeba zapamiętać?</h3>
+            <ul>
+              <li>trzeba zainstalować: <b>pip install pytest</b></li>
+              <li>test może być zwykłą funkcją</li>
+              <li>wystarczy zwykłe <b>assert</b></li>
+              <li><b>-v</b> pokazuje więcej informacji</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content">
+        <h2>unittest vs pytest</h2>
+        <div class="grid cols2">
+          <div class="card small"><h3 class="cyan">unittest</h3><ul><li>bez instalacji</li><li>bardziej formalny zapis</li><li>dużo metod typu <b>assertEqual</b>, <b>assertTrue</b></li><li>dobry do poznania klasycznego stylu testów</li></ul></div>
+          <div class="card small"><h3 class="green">pytest</h3><ul><li>krótszy kod</li><li>czytelne <b>assert</b></li><li>łatwe testowanie wielu przypadków</li><li>często wygodniejszy w praktyce</li></ul></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content">
+        <h2>Najważniejsze asserty w unittest</h2>
+        <p class="lead">Assert to pytanie do programu: <span class="accent">„czy wynik jest taki, jak oczekuję?”</span></p>
+        <div class="assert-table small">
+          <div class="assert-row"><b>assertEqual(a, b)</b><span>sprawdza, czy a == b</span></div>
+          <div class="assert-row"><b>assertNotEqual(a, b)</b><span>sprawdza, czy a != b</span></div>
+          <div class="assert-row"><b>assertTrue(x)</b><span>sprawdza, czy x jest prawdziwe</span></div>
+          <div class="assert-row"><b>assertFalse(x)</b><span>sprawdza, czy x jest fałszywe</span></div>
+          <div class="assert-row"><b>assertIn(a, lista)</b><span>sprawdza, czy element jest w kolekcji</span></div>
+          <div class="assert-row"><b>assertIsNone(x)</b><span>sprawdza, czy wynik to None</span></div>
+          <div class="assert-row"><b>assertGreater(a, b)</b><span>sprawdza, czy a &gt; b</span></div>
+          <div class="assert-row"><b>assertRaises(Błąd)</b><span>sprawdza, czy pojawia się wyjątek</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content">
+        <h2>Co będziemy testować?</h2>
+        <div class="flow">
+          <div class="step"><b>Palindrom</b><span>czy słowo czytane od tyłu jest takie samo?</span></div>
+          <div class="step"><b>Trójkąt</b><span>czy z boków da się zbudować trójkąt?</span></div>
+          <div class="step"><b>Dzielenie</b><span>co się stanie przy dzieleniu przez 0?</span></div>
+          <div class="step"><b>Sortowanie</b><span>czy lista jest posortowana po długości?</span></div>
+        </div>
+        <div class="flow" style="margin-top:18px">
+          <div class="step"><b>Liczby pierwsze</b><span>czy liczba ma tylko dwa dzielniki?</span></div>
+          <div class="step"><b>Średnia</b><span>co zwrócić dla pustej listy i błędnych danych?</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content">
+        <h2>Praktyczne triki</h2>
+        <div class="grid cols2 small">
+          <div class="card"><h3 class="orange">Testuj przypadki graniczne</h3><p>Nie tylko „ładne” dane. Sprawdź też 0, pustą listę, zły typ danych, dzielenie przez 0.</p></div>
+          <div class="card"><h3 class="pink">Nazwy mają pomagać</h3><p><b>test_valid_triangle</b> mówi więcej niż <b>test1</b>.</p></div>
+          <div class="card"><h3 class="green">Jeden test = jeden pomysł</h3><p>Łatwiej znaleźć błąd, kiedy test sprawdza konkretną rzecz.</p></div>
+          <div class="card"><h3 class="cyan">Najpierw spodziewany wynik</h3><p>Zanim uruchomisz test, odpowiedz: „co funkcja powinna zwrócić?”</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <div class="content center">
+        <h2>Mini workflow na lekcji</h2>
+        <div class="flow" style="justify-content:center">
+          <div class="step"><b>1</b><span>piszemy funkcję</span></div>
+          <div class="step"><b>2</b><span>piszemy test</span></div>
+          <div class="step"><b>3</b><span>uruchamiamy</span></div>
+          <div class="step"><b>4</b><span>czytamy błąd</span></div>
+          <div class="step"><b>5</b><span>poprawiamy kod</span></div>
+        </div>
+        <p class="lead" style="margin:34px auto 0">Dobry programista nie boi się czerwonego testu — bo czerwony test pokazuje, co naprawić.</p>
+      </div>
+    </section>
+  </main>
+
+  <div class="nav">
+    <div><kbd>←</kbd> <kbd>→</kbd> / klik — zmiana slajdu • <kbd>F</kbd> — pełny ekran</div>
+    <div class="progress"><div class="bar" id="bar"></div></div>
+  </div>
+
+<script>
+  const slides=[...document.querySelectorAll('.slide')];
+  let i=0;
+  const bar=document.getElementById('bar');
+  function show(n){ i=(n+slides.length)%slides.length; slides.forEach((s,k)=>s.classList.toggle('active',k===i)); bar.style.width=((i+1)/slides.length*100)+'%'; }
+  function next(){show(i+1)} function prev(){show(i-1)}
+  document.addEventListener('keydown',e=>{ if(['ArrowRight','PageDown',' '].includes(e.key)) next(); if(['ArrowLeft','PageUp'].includes(e.key)) prev(); if(e.key.toLowerCase()==='f'){ document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen(); }});
+  document.addEventListener('click',e=>{ if(e.target.closest('a')) return; next(); });
+  show(0);
+</script>
+</body>
+</html>
