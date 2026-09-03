@@ -1,6 +1,13 @@
 import json
 import time
 
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+import os
+import dotenv
+
+
 
 with open('menu.json', 'r', encoding='utf-8') as file:
     menu = json.load(file)
@@ -22,10 +29,28 @@ order = []
 
 
 def send_email(message_text):
-    print("\n--- WIADOMOŚĆ ---")
-    print(message_text)
-    print("-----------------\n")
+    dotenv.load_dotenv()
 
+    subject = "Pizzeria u Vita - potwierdzenie zamowienia"
+
+    sender_email = os.getenv('sender_email')
+    sender_password = os.getenv("sender_password")
+    recipient_email = os.getenv("recipient_email")
+
+    message = MIMEMultipart()
+
+    message['Subject'] = subject
+    message["From"] = sender_email
+    message["To"] = recipient_email
+
+    body_part = MIMEText(message_text)
+
+    message.attach(body_part)
+
+    with smtplib.SMTP("smtp.wp.pl", 587, timeout=20) as server:
+        server.starttls()
+        server.login(sender_email, sender_password)
+        server.sendmail(sender_email, recipient_email, message.as_string())
 
 # ===============================================================================
 
